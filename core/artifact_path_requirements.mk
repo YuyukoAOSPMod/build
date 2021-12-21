@@ -46,11 +46,14 @@ $(foreach makefile,$(ARTIFACT_PATH_REQUIREMENT_PRODUCTS),\
   $(eval allowed_patterns := $(call resolve-product-relative-paths,$(allowed))) \
   $(eval offending_files := $(filter-out $(allowed_patterns),$(files_in_requirement))) \
   $(eval enforcement := $(PRODUCT_ENFORCE_ARTIFACT_PATH_REQUIREMENTS)) \
+  $(eval strict_enforcment := $(filter true strict,$(enforcement))) \
   $(if $(enforcement),\
-    $(call maybe-print-list-and-error,$(offending_files),\
-      $(INTERNAL_PRODUCT) produces files inside $(makefile)s artifact path requirement. \
-      $(PRODUCT_ARTIFACT_PATH_REQUIREMENT_HINT)) \
-    $(eval unused_allowed := $(if $(filter true strict,$(enforcement)),\
+    $(if $(strict_enforcment),\
+      $(call maybe-print-list-and-error,$(offending_files),\
+        $(INTERNAL_PRODUCT) produces files inside $(makefile)s artifact path requirement. \
+        $(PRODUCT_ARTIFACT_PATH_REQUIREMENT_HINT)) \
+    ) \
+    $(eval unused_allowed := $(if $(strict_enforcment),\
       $(foreach p,$(allowed_patterns),$(if $(filter $(p),$(extra_files)),,$(p))))) \
     $(call maybe-print-list-and-error,$(unused_allowed),$(INTERNAL_PRODUCT) includes redundant artifact path requirement allowed list entries.) \
   ) \
