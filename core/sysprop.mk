@@ -30,22 +30,29 @@ POST_PROCESS_PROPS := $(HOST_OUT_EXECUTABLES)/post_process_props$(HOST_EXECUTABL
 # $(1): Partition name
 # $(2): Output file name
 define generate-common-build-props
+    PRODUCT_NAME="$(TARGET_PRODUCT)";\
+    PRODUCT_DEVICE="$(TARGET_DEVICE)";\
+    $(PRODUCT_BUILD_PROP_OVERRIDES);\
+    PRODUCT_SYSTEM_NAME=$(PRODUCT_SYSTEM_NAME);\
+    PRODUCT_SYSTEM_DEVICE=$(PRODUCT_SYSTEM_DEVICE);\
+    [ "$(PRODUCT_SYSTEM_DEVICE)" = "$(TARGET_DEVICE)" ] && PRODUCT_SYSTEM_DEVICE=$${PRODUCT_DEVICE};\
+    [ "$(PRODUCT_SYSTEM_NAME)" = "$(TARGET_PRODUCT)" ] && PRODUCT_SYSTEM_NAME=$${PRODUCT_NAME};\
     echo "####################################" >> $(2);\
     echo "# from generate-common-build-props" >> $(2);\
     echo "# These properties identify this partition image." >> $(2);\
     echo "####################################" >> $(2);\
     $(if $(filter system,$(1)),\
         echo "ro.product.$(1).brand=$(PRODUCT_SYSTEM_BRAND)" >> $(2);\
-        echo "ro.product.$(1).device=$(PRODUCT_SYSTEM_DEVICE)" >> $(2);\
+        echo "ro.product.$(1).device=$${PRODUCT_SYSTEM_DEVICE}" >> $(2);\
         echo "ro.product.$(1).manufacturer=$(PRODUCT_SYSTEM_MANUFACTURER)" >> $(2);\
         echo "ro.product.$(1).model=$(PRODUCT_SYSTEM_MODEL)" >> $(2);\
-        echo "ro.product.$(1).name=$(PRODUCT_SYSTEM_NAME)" >> $(2);\
+        echo "ro.product.$(1).name=$${PRODUCT_SYSTEM_NAME}" >> $(2);\
       ,\
         echo "ro.product.$(1).brand=$(PRODUCT_BRAND)" >> $(2);\
-        echo "ro.product.$(1).device=$(TARGET_DEVICE)" >> $(2);\
+        echo "ro.product.$(1).device=$${PRODUCT_DEVICE}" >> $(2);\
         echo "ro.product.$(1).manufacturer=$(PRODUCT_MANUFACTURER)" >> $(2);\
         echo "ro.product.$(1).model=$(PRODUCT_MODEL)" >> $(2);\
-        echo "ro.product.$(1).name=$(TARGET_PRODUCT)" >> $(2);\
+        echo "ro.product.$(1).name=$${PRODUCT_NAME}" >> $(2);\
     )\
     $(if $(filter system vendor odm,$(1)),\
         echo "ro.$(1).product.cpu.abilist=$(TARGET_CPU_ABI_LIST) " >> $(2);\
@@ -103,8 +110,7 @@ $(2): $(POST_PROCESS_PROPS) $(INTERNAL_BUILD_ID_MAKEFILE) $(API_FINGERPRINT) $(3
 	$(hide) mkdir -p $$(dir $$@)
 	$(hide) rm -f $$@ && touch $$@
 ifneq ($(strip $(7)), true)
-	$(hide) $(PRODUCT_BUILD_PROP_OVERRIDES) \
-	        $$(call generate-common-build-props,$(call to-lower,$(strip $(1))),$$@)
+	$(hide) $$(call generate-common-build-props,$(call to-lower,$(strip $(1))),$$@)
 endif
 	$(hide) $(foreach file,$(strip $(3)),\
 	    if [ -f "$(file)" ]; then\
