@@ -6168,8 +6168,14 @@ $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE) $(OTA_FROM_TARGET_
 $(call declare-1p-container,$(INTERNAL_OTA_PACKAGE_TARGET),)
 $(call declare-container-license-deps,$(INTERNAL_OTA_PACKAGE_TARGET),$(BUILT_TARGET_FILES_PACKAGE) $(OTA_FROM_TARGET_FILES) $(INTERNAL_OTATOOLS_FILES),$(PRODUCT_OUT)/:/)
 
-.PHONY: otapackage
+MOD_TARGET_PACKAGE := $(PRODUCT_OUT)/$(MOD_VERSION).zip
+
+.PHONY: otapackage bacon
 otapackage: $(INTERNAL_OTA_PACKAGE_TARGET)
+bacon: otapackage
+	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(MOD_TARGET_PACKAGE)
+	$(hide) $(MD5SUM) $(MOD_TARGET_PACKAGE) > $(MOD_TARGET_PACKAGE).md5sum
+	@echo "**Package complete"**: $(MOD_TARGET_PACKAGE)"
 
 ifeq ($(BOARD_BUILD_RETROFIT_DYNAMIC_PARTITIONS_OTA_PACKAGE),true)
 name := $(product_name)-ota-retrofit-$(FILE_NAME_TAG)
